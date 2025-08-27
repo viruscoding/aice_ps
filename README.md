@@ -4,8 +4,11 @@ Aice PS 是一款功能强大的网页版 AI 照片编辑器，利用 Google Gem
 
 ![Aice PS 界面截图](https://storage.googleapis.com/gweb-developer-goog-blog-assets/images/gemini-2-5-flash-prompt-based-image-editing.original.png)
 
-### [【AiStudio DEMO】](https://ai.studio/apps/drive/1JSVTWc7Pe1GfLLrQcBWPZF_yH_80xUGg)
+### [【AiStudio DEMO】](https://ai.studio/apps/drive/1JSVTWc7Pe1GfLLrQcBWPZF_yH_80xUGg)  [【视频教程】](https://www.bilibili.com/video/BV1y6e2z3EDS/)  [【交流群】](https://cnb.cool/fuliai/comfyui/-/issues/11) 
 
+> 登录了google aistudio 的可以直接打开上面 app 使用。也可以使用 gemini api key。
+
+> 
 ## ✨ 主要功能
 
 - **AI 图像生成**: 通过文本描述直接创作高质量图片，并支持多种宽高比。
@@ -111,6 +114,8 @@ Aice PS 的强大功能由 Google 最先进的一系列生成式 AI 模型驱动
 ### 步骤 4: 部署
 
 点击 **Deploy** 按钮。Vercel 会在几十秒内完成部署，之后您就可以通过 Vercel 提供的 URL 访问您的线上 AI 图片编辑器了！
+
+###  [【视频教程】](https://www.bilibili.com/video/BV1y6e2z3EDS/)  [【交流群】](https://cnb.cool/fuliai/comfyui/-/issues/11) 
 
 ## 📄 许可证
 

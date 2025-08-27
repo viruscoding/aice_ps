@@ -4,6 +4,8 @@ Aice PS 是一款功能强大的网页版 AI 照片编辑器，利用 Google Gem
 
 ![Aice PS 界面截图](https://storage.googleapis.com/gweb-developer-goog-blog-assets/images/gemini-2-5-flash-prompt-based-image-editing.original.png)
 
+### [【AiStudio DEMO】](https://ai.studio/apps/drive/1JSVTWc7Pe1GfLLrQcBWPZF_yH_80xUGg)
+
 ## ✨ 主要功能
 
 - **AI 图像生成**: 通过文本描述直接创作高质量图片，并支持多种宽高比。

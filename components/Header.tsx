@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import React from 'react';
-import { SparkleIcon, CogIcon } from './icons';
+import { SparkleIcon, CogIcon, GitHubIcon } from './icons';
 
 interface HeaderProps {
     onSettingsClick: () => void;
@@ -19,14 +19,26 @@ const Header: React.FC<HeaderProps> = ({ onSettingsClick }) => {
                 Aice PS
               </h1>
           </div>
-          <button
-            onClick={onSettingsClick}
-            className="p-2 text-gray-400 rounded-full hover:bg-white/10 hover:text-white transition-colors"
-            aria-label="设置"
-            title="设置"
-          >
-            <CogIcon className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href="https://github.com/aigem/aice_ps"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 text-gray-400 rounded-full hover:bg-white/10 hover:text-white transition-colors"
+              aria-label="GitHub Repository"
+              title="GitHub Repository"
+            >
+              <GitHubIcon className="w-6 h-6" />
+            </a>
+            <button
+              onClick={onSettingsClick}
+              className="p-2 text-gray-400 rounded-full hover:bg-white/10 hover:text-white transition-colors"
+              aria-label="设置"
+              title="设置"
+            >
+              <CogIcon className="w-6 h-6" />
+            </button>
+          </div>
       </div>
     </header>
   );

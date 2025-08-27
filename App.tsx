@@ -4,7 +4,7 @@
 */
 
 
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
 import { generateEditedImage, generateFilteredImage, generateAdjustedImage, generateFusedImage, generateTexturedImage, removeBackgroundImage } from './services/geminiService';
 import Header from './components/Header';
@@ -112,6 +112,10 @@ const App: React.FC = () => {
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
+  // State for image URLs
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [originalImageSrc, setOriginalImageSrc] = useState<string | null>(null);
+
   // Cropping state
   const imgRef = useRef<HTMLImageElement>(null);
   const [crop, setCrop] = useState<Crop>();
@@ -125,12 +129,30 @@ const App: React.FC = () => {
   const currentImageFile = history[historyIndex];
   const originalImageFile = history[0];
 
-  const imageSrc = useMemo(() => {
-    return currentImageFile ? URL.createObjectURL(currentImageFile) : null;
+  // Effect to manage the object URL for the current image
+  useEffect(() => {
+    if (!currentImageFile) {
+      setImageSrc(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(currentImageFile);
+    setImageSrc(objectUrl);
+    
+    // Cleanup function to revoke the object URL when the component unmounts or the file changes
+    return () => URL.revokeObjectURL(objectUrl);
   }, [currentImageFile]);
 
-  const originalImageSrc = useMemo(() => {
-      return originalImageFile ? URL.createObjectURL(originalImageFile) : null;
+  // Effect to manage the object URL for the original image
+  useEffect(() => {
+    if (!originalImageFile) {
+      setOriginalImageSrc(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(originalImageFile);
+    setOriginalImageSrc(objectUrl);
+
+    // Cleanup function to revoke the object URL when the component unmounts or the file changes
+    return () => URL.revokeObjectURL(objectUrl);
   }, [originalImageFile]);
 
   const displaySrc = isComparing ? originalImageSrc : imageSrc;
@@ -356,19 +378,6 @@ const App: React.FC = () => {
       runGenerativeTask(task);
     }
   }, [lastAction, history, historyIndex, isLoading]);
-  
-  // Cleanup object URLs
-  useEffect(() => {    
-    return () => {
-      if (imageSrc) URL.revokeObjectURL(imageSrc);
-    };
-  }, [imageSrc]);
-
-  useEffect(() => {
-    return () => {
-      if (originalImageSrc) URL.revokeObjectURL(originalImageSrc);
-    };
-  }, [originalImageSrc]);
   
   const ActionButtons = () => (
     <>

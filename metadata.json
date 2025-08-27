@@ -1,0 +1,6 @@
+{
+  "name": "Aice PS",
+  "description": "一款功能强大的AI照片编辑器。使用简单的文本提示即可对图像进行修饰、应用创意滤镜和进行专业调整。",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

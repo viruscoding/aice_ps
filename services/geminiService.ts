@@ -166,8 +166,16 @@ const callImageEditingModel = async (parts: any[], action: string): Promise<stri
                 return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
             }
         }
+        // This is a special case for prompt-blocking or other non-image responses
+        if (response.candidates[0].content.parts[0]?.text) {
+             throw new Error("Model responded with text instead of an image. The prompt may have been blocked.");
+        }
         throw new Error('AI 未能返回预期的图片结果。');
     } catch (e) {
+        // Re-throw specific errors, otherwise wrap in a generic handler
+        if (e.message.includes("Model responded with text")) {
+            throw e;
+        }
         throw handleApiError(e, action);
     }
 }
@@ -286,5 +294,46 @@ export const generateCreativeSuggestions = async (imageFile: File, type: 'filter
         return result.suggestions;
     } catch (e) {
         throw handleApiError(e, '获取灵感');
+    }
+};
+
+
+// Past Forward Feature
+const getFallbackPrompt = (decade: string) => `Create a photograph of the person in this image as if they were living in the ${decade}. The photograph should capture the distinct fashion, hairstyles, and overall atmosphere of that time period. Ensure the final image is a clear photograph that looks authentic to the era.`;
+
+const extractDecade = (prompt: string) => {
+    const match = prompt.match(/(\d{4}s)/);
+    return match ? match[1] : null;
+}
+
+export const generateDecadeImage = async (imageDataUrl: string, prompt: string): Promise<string> => {
+  const match = imageDataUrl.match(/^data:(image\/\w+);base64,(.*)$/);
+  if (!match) {
+    throw new Error("Invalid image data URL format.");
+  }
+  const [, mimeType, base64Data] = match;
+
+    const imagePart = {
+        inlineData: { mimeType, data: base64Data },
+    };
+
+    try {
+        // First attempt with the primary prompt
+        const textPart = { text: prompt };
+        return await callImageEditingModel([imagePart, textPart], `生成 ${extractDecade(prompt)} 图像`);
+    } catch (error) {
+        // If it failed because the model returned text (prompt was likely blocked)
+        if (error instanceof Error && error.message.includes("Model responded with text instead of an image")) {
+            console.warn("Original prompt failed. Trying a fallback.");
+            const decade = extractDecade(prompt);
+            if (!decade) throw error; 
+            
+            // Second attempt with a safer, fallback prompt
+            const fallbackPrompt = getFallbackPrompt(decade);
+            const fallbackTextPart = { text: fallbackPrompt };
+            return await callImageEditingModel([imagePart, fallbackTextPart], `生成 ${decade} 图像 (fallback)`);
+        }
+        // For other errors, re-throw them
+        throw error;
     }
 };

@@ -17,6 +17,7 @@ import TexturePanel from './components/TexturePanel';
 import ErasePanel from './components/ErasePanel';
 import { UndoIcon, RedoIcon, EyeIcon, BullseyeIcon, DownloadIcon, RefreshIcon, NewFileIcon } from './components/icons';
 import StartScreen from './components/StartScreen';
+import PastForwardPage from './components/PastForwardPage';
 
 // Helper to convert a data URL string to a File object
 const dataURLtoFile = (dataurl: string, filename: string): File => {
@@ -100,8 +101,12 @@ type LastAction =
   | { type: 'texture', prompt: string }
   | { type: 'erase' };
 
+type View = 'editor' | 'past-forward';
 
-const App: React.FC = () => {
+const EditorView: React.FC<{
+    onFileSelect: (files: FileList | null) => void;
+    onImageGenerated: (dataUrl: string) => void;
+}> = ({ onFileSelect, onImageGenerated }) => {
   const [history, setHistory] = useState<File[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -166,7 +171,7 @@ const App: React.FC = () => {
     setRetouchHotspot(null);
   };
   
-  const handleFileSelect = (files: FileList | null) => {
+  const handleLocalFileSelect = (files: FileList | null) => {
     if (files && files.length > 0) {
       const file = files[0];
       if (file.size > MAX_FILE_SIZE_BYTES) {
@@ -178,10 +183,11 @@ const App: React.FC = () => {
       setActiveTab('adjust');
       setError(null);
       setLastAction(null);
+      onFileSelect(files);
     }
   };
 
-  const handleImageGenerated = (dataUrl: string) => {
+  const handleLocalImageGenerated = (dataUrl: string) => {
     setIsLoading(true); // show spinner while converting
     try {
         const newFile = dataURLtoFile(dataUrl, `generated-${Date.now()}.png`);
@@ -190,6 +196,7 @@ const App: React.FC = () => {
         setActiveTab('adjust'); // or another default
         setError(null);
         setLastAction(null);
+        onImageGenerated(dataUrl);
     } catch(e) {
         console.error("Failed to process generated image", e);
         setError(e instanceof Error ? e.message : '处理生成图像时出错');
@@ -441,142 +448,157 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
-      <Header />
-      <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
-        {!currentImageFile ? (
-          <StartScreen onFileSelect={handleFileSelect} onImageGenerated={handleImageGenerated} />
-        ) : (
-          <div className="w-full max-w-7xl flex flex-col items-center gap-6 animate-fade-in">
-
-            <div className="w-full max-w-4xl relative">
-              <div className="bg-black rounded-lg shadow-2xl shadow-blue-500/10 overflow-hidden border border-gray-700">
-                  {isLoading && (
-                    <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-20 backdrop-blur-sm">
-                      <Spinner className="h-16 w-16 text-blue-400" />
-                      <p className="mt-4 text-lg text-gray-300 font-semibold animate-pulse">AI 正在创作中...</p>
+    <>
+      {!currentImageFile ? (
+        <StartScreen onFileSelect={handleLocalFileSelect} onImageGenerated={handleLocalImageGenerated} />
+      ) : (
+        <div className="w-full max-w-7xl flex flex-col items-center gap-6 animate-fade-in">
+          <div className="w-full max-w-4xl relative">
+            <div className="bg-black rounded-lg shadow-2xl shadow-blue-500/10 overflow-hidden border border-gray-700">
+                {isLoading && (
+                  <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-20 backdrop-blur-sm">
+                    <Spinner className="h-16 w-16 text-blue-400" />
+                    <p className="mt-4 text-lg text-gray-300 font-semibold animate-pulse">AI 正在创作中...</p>
+                  </div>
+                )}
+                
+                {displaySrc && (
+                  <div className="relative">
+                    <ReactCrop
+                      crop={crop}
+                      onChange={c => setCrop(c)}
+                      onComplete={c => setCompletedCrop(c)}
+                      aspect={aspect}
+                      disabled={isLoading || activeTab !== 'crop'}
+                      ruleOfThirds
+                    >
+                      <img
+                        ref={imgRef}
+                        src={displaySrc}
+                        alt="用户上传的内容"
+                        className={`max-w-full max-h-[65vh] w-auto h-auto mx-auto block transition-opacity duration-300 ${isComparing ? 'opacity-80' : ''}`}
+                        onClick={handleImageClick}
+                        style={{ cursor: activeTab === 'retouch' ? 'crosshair' : 'default' }}
+                      />
+                    </ReactCrop>
+                    {retouchHotspot && !isLoading && activeTab === 'retouch' && (
+                        <div
+                            className="absolute z-10 pointer-events-none"
+                            style={{
+                                left: `calc(${(retouchHotspot.x / (imgRef.current?.naturalWidth ?? 1)) * 100}% - 12px)`,
+                                top: `calc(${(retouchHotspot.y / (imgRef.current?.naturalHeight ?? 1)) * 100}% - 12px)`,
+                            }}
+                        >
+                            <BullseyeIcon className="w-6 h-6 text-blue-400 drop-shadow-[0_0_3px_rgba(0,0,0,0.7)]" />
+                        </div>
+                    )}
+                  </div>
+                )}
+                {isComparing && (
+                    <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-md text-sm font-semibold z-10">
+                        正在对比原图
                     </div>
-                  )}
-                  
-                  {displaySrc && (
-                    <div className="relative">
-                      <ReactCrop
-                        crop={crop}
-                        onChange={c => setCrop(c)}
-                        onComplete={c => setCompletedCrop(c)}
-                        aspect={aspect}
-                        disabled={isLoading || activeTab !== 'crop'}
-                        ruleOfThirds
-                      >
-                        <img
-                          ref={imgRef}
-                          src={displaySrc}
-                          alt="用户上传的内容"
-                          className={`max-w-full max-h-[65vh] w-auto h-auto mx-auto block transition-opacity duration-300 ${isComparing ? 'opacity-80' : ''}`}
-                          onClick={handleImageClick}
-                          style={{ cursor: activeTab === 'retouch' ? 'crosshair' : 'default' }}
-                        />
-                      </ReactCrop>
-                      {retouchHotspot && !isLoading && activeTab === 'retouch' && (
-                          <div
-                              className="absolute z-10 pointer-events-none"
-                              style={{
-                                  left: `calc(${(retouchHotspot.x / (imgRef.current?.naturalWidth ?? 1)) * 100}% - 12px)`,
-                                  top: `calc(${(retouchHotspot.y / (imgRef.current?.naturalHeight ?? 1)) * 100}% - 12px)`,
-                              }}
-                          >
-                              <BullseyeIcon className="w-6 h-6 text-blue-400 drop-shadow-[0_0_3px_rgba(0,0,0,0.7)]" />
-                          </div>
-                      )}
-                    </div>
-                  )}
-                  {isComparing && (
-                      <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-md text-sm font-semibold z-10">
-                          正在对比原图
-                      </div>
-                  )}
-              </div>
-              
-              {/* Floating Toolbar (Desktop) */}
-              <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%+1rem)] 
-                              flex-col gap-4 p-3 bg-gray-800/50 backdrop-blur-md rounded-2xl border border-gray-700/50
-                              hidden md:flex">
-                <ActionButtons />
-              </div>
-            </div>
-
-            {/* Horizontal Toolbar (Mobile) */}
-            <div className="flex md:hidden justify-center items-center gap-4">
-                <ActionButtons />
+                )}
             </div>
             
-            <div className="w-full max-w-4xl">
-              {error && (
-                <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg relative text-center mb-4 animate-fade-in" role="alert">
-                  <strong className="font-bold">错误：</strong>
-                  <span className="block sm:inline ml-2">{error}</span>
-                </div>
-              )}
+            <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%+1rem)] 
+                            flex-col gap-4 p-3 bg-gray-800/50 backdrop-blur-md rounded-2xl border border-gray-700/50
+                            hidden md:flex">
+              <ActionButtons />
+            </div>
+          </div>
 
-              <div className="flex justify-center border-b border-gray-700 mb-4 overflow-x-auto">
-                {TABS.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => { if (!isLoading) { setActiveTab(tab); setRetouchHotspot(null); } }}
-                    className={`px-4 md:px-6 py-3 text-lg font-semibold border-b-2 transition-colors duration-200 ease-in-out focus:outline-none disabled:cursor-not-allowed whitespace-nowrap ${
-                      activeTab === tab
-                        ? 'border-blue-500 text-blue-400'
-                        : 'border-transparent text-gray-400 hover:text-white hover:border-gray-500'
-                    }`}
-                    disabled={isLoading}
-                  >
-                    {tabNames[tab]}
-                  </button>
-                ))}
+          <div className="flex md:hidden justify-center items-center gap-4">
+              <ActionButtons />
+          </div>
+          
+          <div className="w-full max-w-4xl">
+            {error && (
+              <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg relative text-center mb-4 animate-fade-in" role="alert">
+                <strong className="font-bold">错误：</strong>
+                <span className="block sm:inline ml-2">{error}</span>
               </div>
+            )}
 
-              <div className="w-full">
-                {activeTab === 'retouch' && (
-                    <div className="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-4 flex flex-col items-center gap-4 animate-fade-in backdrop-blur-sm">
-                        <h3 className="text-lg font-semibold text-gray-300">智能修饰</h3>
-                        <p className="text-sm text-gray-400 -mt-2">在图像上点击一个点，然后描述您想做的更改。</p>
-                        <div className="w-full flex gap-2">
-                           <input
-                                type="text"
-                                value={retouchPrompt}
-                                onChange={(e) => setRetouchPrompt(e.target.value)}
-                                placeholder="例如，“移除这个物体”或“把衬衫改成红色”"
-                                className="flex-grow bg-gray-800 border border-gray-600 text-gray-200 rounded-lg p-4 focus:ring-2 focus:ring-blue-500 focus:outline-none transition w-full disabled:cursor-not-allowed disabled:opacity-60 text-base"
-                                disabled={isLoading}
-                            />
-                            <button
-                                onClick={handleApplyRetouch}
-                                className="bg-gradient-to-br from-blue-600 to-blue-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 ease-in-out shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-px active:scale-95 active:shadow-inner text-base disabled:from-blue-800 disabled:to-blue-700 disabled:shadow-none disabled:cursor-not-allowed disabled:transform-none"
-                                disabled={isLoading || !retouchPrompt.trim() || !retouchHotspot}
-                            >
-                                应用
-                            </button>
-                        </div>
-                    </div>
-                )}
-                {activeTab === 'adjust' && <AdjustmentPanel onApplyAdjustment={handleApplyAdjustment} isLoading={isLoading} currentImage={currentImageFile} onError={setError} />}
-                {activeTab === 'filters' && <FilterPanel onApplyFilter={handleApplyFilter} isLoading={isLoading} currentImage={currentImageFile} onError={setError} />}
-                {activeTab === 'texture' && <TexturePanel onApplyTexture={handleApplyTexture} isLoading={isLoading} currentImage={currentImageFile} onError={setError} />}
-                {activeTab === 'erase' && <ErasePanel onRemoveBackground={handleRemoveBackground} isLoading={isLoading} />}
-                {activeTab === 'crop' && (
-                  <CropPanel
-                    onApplyCrop={handleApplyCrop}
-                    onSetAspect={setAspect}
-                    isLoading={isLoading}
-                    isCropping={!!completedCrop?.width && !!completedCrop?.height}
-                  />
-                )}
-                {activeTab === 'fusion' && <FusionPanel onApplyFusion={handleApplyFusion} isLoading={isLoading} onError={setError} />}
-              </div>
+            <div className="flex justify-center border-b border-gray-700 mb-4 overflow-x-auto">
+              {TABS.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => { if (!isLoading) { setActiveTab(tab); setRetouchHotspot(null); } }}
+                  className={`px-4 md:px-6 py-3 text-lg font-semibold border-b-2 transition-colors duration-200 ease-in-out focus:outline-none disabled:cursor-not-allowed whitespace-nowrap ${
+                    activeTab === tab
+                      ? 'border-blue-500 text-blue-400'
+                      : 'border-transparent text-gray-400 hover:text-white hover:border-gray-500'
+                  }`}
+                  disabled={isLoading}
+                >
+                  {tabNames[tab]}
+                </button>
+              ))}
             </div>
 
+            <div className="w-full">
+              {activeTab === 'retouch' && (
+                  <div className="w-full bg-gray-800/50 border border-gray-700 rounded-lg p-4 flex flex-col items-center gap-4 animate-fade-in backdrop-blur-sm">
+                      <h3 className="text-lg font-semibold text-gray-300">智能修饰</h3>
+                      <p className="text-sm text-gray-400 -mt-2">在图像上点击一个点，然后描述您想做的更改。</p>
+                      <div className="w-full flex gap-2">
+                         <input
+                              type="text"
+                              value={retouchPrompt}
+                              onChange={(e) => setRetouchPrompt(e.target.value)}
+                              placeholder="例如，“移除这个物体”或“把衬衫改成红色”"
+                              className="flex-grow bg-gray-800 border border-gray-600 text-gray-200 rounded-lg p-4 focus:ring-2 focus:ring-blue-500 focus:outline-none transition w-full disabled:cursor-not-allowed disabled:opacity-60 text-base"
+                              disabled={isLoading}
+                          />
+                          <button
+                              onClick={handleApplyRetouch}
+                              className="bg-gradient-to-br from-blue-600 to-blue-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 ease-in-out shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-px active:scale-95 active:shadow-inner text-base disabled:from-blue-800 disabled:to-blue-700 disabled:shadow-none disabled:cursor-not-allowed disabled:transform-none"
+                              disabled={isLoading || !retouchPrompt.trim() || !retouchHotspot}
+                          >
+                              应用
+                          </button>
+                      </div>
+                  </div>
+              )}
+              {activeTab === 'adjust' && <AdjustmentPanel onApplyAdjustment={handleApplyAdjustment} isLoading={isLoading} currentImage={currentImageFile} onError={setError} />}
+              {activeTab === 'filters' && <FilterPanel onApplyFilter={handleApplyFilter} isLoading={isLoading} currentImage={currentImageFile} onError={setError} />}
+              {activeTab === 'texture' && <TexturePanel onApplyTexture={handleApplyTexture} isLoading={isLoading} currentImage={currentImageFile} onError={setError} />}
+              {activeTab === 'erase' && <ErasePanel onRemoveBackground={handleRemoveBackground} isLoading={isLoading} />}
+              {activeTab === 'crop' && (
+                <CropPanel
+                  onApplyCrop={handleApplyCrop}
+                  onSetAspect={setAspect}
+                  isLoading={isLoading}
+                  isCropping={!!completedCrop?.width && !!completedCrop?.height}
+                />
+              )}
+              {activeTab === 'fusion' && <FusionPanel onApplyFusion={handleApplyFusion} isLoading={isLoading} onError={setError} />}
+            </div>
           </div>
-        )}
+        </div>
+      )}
+    </>
+  );
+}
+
+
+const App: React.FC = () => {
+  const [activeView, setActiveView] = useState<View>('editor');
+  
+  // Dummy handlers to satisfy the EditorView props, as its internal state is now self-contained.
+  const handleFileSelect = () => {};
+  const handleImageGenerated = () => {};
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+      <Header 
+        activeView={activeView} 
+        onViewChange={setActiveView} 
+      />
+      <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
+        {activeView === 'editor' && <EditorView onFileSelect={handleFileSelect} onImageGenerated={handleImageGenerated} />}
+        {activeView === 'past-forward' && <PastForwardPage />}
       </main>
     </div>
   );

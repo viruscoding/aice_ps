@@ -17,7 +17,6 @@ import TexturePanel from './components/TexturePanel';
 import ErasePanel from './components/ErasePanel';
 import { UndoIcon, RedoIcon, EyeIcon, BullseyeIcon, DownloadIcon, RefreshIcon, NewFileIcon } from './components/icons';
 import StartScreen from './components/StartScreen';
-import SettingsModal from './components/SettingsModal';
 
 // Helper to convert a data URL string to a File object
 const dataURLtoFile = (dataurl: string, filename: string): File => {
@@ -110,7 +109,6 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('adjust');
   const [isComparing, setIsComparing] = useState(false);
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   // State for image URLs
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -444,7 +442,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
-      <Header onSettingsClick={() => setIsSettingsModalOpen(true)} />
+      <Header />
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
         {!currentImageFile ? (
           <StartScreen onFileSelect={handleFileSelect} onImageGenerated={handleImageGenerated} />
@@ -580,7 +578,6 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
-      <SettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} />
     </div>
   );
 };

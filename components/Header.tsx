@@ -3,13 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import React from 'react';
-import { SparkleIcon, CogIcon, GitHubIcon } from './icons';
+import { SparkleIcon, GitHubIcon } from './icons';
 
-interface HeaderProps {
-    onSettingsClick: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ onSettingsClick }) => {
+const Header: React.FC = () => {
   return (
     <header className="w-full py-4 px-4 sm:px-8 border-b border-gray-700 bg-gray-800/30 backdrop-blur-sm sticky top-0 z-50">
       <div className="w-full max-w-7xl mx-auto flex items-center justify-between">
@@ -30,14 +26,6 @@ const Header: React.FC<HeaderProps> = ({ onSettingsClick }) => {
             >
               <GitHubIcon className="w-6 h-6" />
             </a>
-            <button
-              onClick={onSettingsClick}
-              className="p-2 text-gray-400 rounded-full hover:bg-white/10 hover:text-white transition-colors"
-              aria-label="设置"
-              title="设置"
-            >
-              <CogIcon className="w-6 h-6" />
-            </button>
           </div>
       </div>
     </header>

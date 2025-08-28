@@ -1,14 +1,19 @@
 # Aice PS - AI 图片编辑器
 
-Aice PS 是一款功能强大的网页版 AI 照片编辑器，利用 Google Gemini API 的先进能力，让专业级的图像编辑和创作变得简单直观。用户可以通过简单的文本提示对图像进行修饰、应用创意滤镜、进行专业调整，甚至从零开始生成全新的图像。
+Aice PS 是一款功能强大的网页版 AI 照片编辑器，利用 Google aistudio 的先进能力，让专业级的图像编辑和创作变得简单直观。用户可以通过简单的文本提示对图像进行修饰、应用创意滤镜、进行专业调整，甚至从零开始生成全新的图像。
 
 ![Aice PS 界面截图](https://storage.googleapis.com/gweb-developer-goog-blog-assets/images/gemini-2-5-flash-prompt-based-image-editing.original.png)
 
+## 注意，调用 gemini api key 是需要收费的。但直接调用环境变量中的api是免费的。
+
 ### [【AiStudio DEMO】](https://ai.studio/apps/drive/1JSVTWc7Pe1GfLLrQcBWPZF_yH_80xUGg)  [【视频教程】](https://www.bilibili.com/video/BV1y6e2z3EDS/)  [【交流群】](https://cnb.cool/fuliai/comfyui/-/issues/11) 
 
-> 登录了google aistudio 的可以直接打开上面 app 使用。也可以使用 gemini api key。
+> 登录了google aistudio 的可以直接打开上面 app 使用。
 
-> 
+> 请大家谨慎使用自己的gemini api key
+
+## 视频中提示词：[点这里查看](prompt.md)
+
 ## ✨ 主要功能
 
 - **AI 图像生成**: 通过文本描述直接创作高质量图片，并支持多种宽高比。

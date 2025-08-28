@@ -5,34 +5,12 @@
 
 import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "@google/genai";
 
-const CUSTOM_API_KEY_STORAGE_KEY = 'gemini-custom-api-key';
 let aiInstance: GoogleGenAI | null = null;
 
-// Function to get the current API key, prioritizing custom key
+// Function to get the current API key
 const getApiKey = (): string | null => {
-    const customKey = localStorage.getItem(CUSTOM_API_KEY_STORAGE_KEY);
-    return customKey || process.env.API_KEY || null;
+    return process.env.API_KEY || null;
 }
-
-// Public functions to manage the custom API key
-export const setCustomApiKey = (key: string): void => {
-    if (key.trim()) {
-        localStorage.setItem(CUSTOM_API_KEY_STORAGE_KEY, key.trim());
-    } else {
-        localStorage.removeItem(CUSTOM_API_KEY_STORAGE_KEY);
-    }
-    aiInstance = null; // Invalidate the current instance to force re-initialization
-};
-
-export const getCustomApiKey = (): string => {
-    return localStorage.getItem(CUSTOM_API_KEY_STORAGE_KEY) || '';
-};
-
-export const clearCustomApiKey = (): void => {
-    localStorage.removeItem(CUSTOM_API_KEY_STORAGE_KEY);
-    aiInstance = null; // Invalidate
-};
-
 
 // Centralized function to get the GoogleGenAI instance
 const getGoogleAI = (): GoogleGenAI => {
@@ -42,7 +20,7 @@ const getGoogleAI = (): GoogleGenAI => {
 
     const apiKey = getApiKey();
     if (!apiKey) {
-        throw new Error("找不到 API 密钥。请在设置中添加您的 Gemini API 密钥，或者确保已在环境中正确设置。");
+        throw new Error("找不到 API 密钥。请确保系统 API 密钥已在环境中正确设置。");
     }
     
     try {
@@ -70,9 +48,9 @@ const handleApiError = (error: any, action: string): Error => {
     } catch(e) {
       // It's not a JSON string, use the original message
       if (String(error.message).includes('API key not valid')) {
-          message = '您的 API 密钥无效。请在设置中检查并更正。';
+          message = '系统 API 密钥无效。';
       } else if (String(error.message).includes('xhr error')) {
-           message = `与 AI 服务的通信失败。这通常是由无效的 API 密钥或网络问题引起的。请在设置中检查您的密钥并重试。`;
+           message = `与 AI 服务的通信失败。这可能是由网络问题或无效的系统 API 密钥引起的。`;
       }
     }
 

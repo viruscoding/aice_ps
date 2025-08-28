@@ -53,11 +53,13 @@ const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect, onImageGenerate
   return (
     <div className="flex flex-col items-center gap-6 animate-fade-in w-full max-w-5xl mx-auto text-center p-8">
       <h1 className="text-5xl font-extrabold tracking-tight text-gray-100 sm:text-6xl md:text-7xl">
-        AI 驱动的照片编辑，<span className="text-blue-400">化繁为简</span>。
+        Nano Banana <span className="text-blue-400">化繁为简</span>
       </h1>
-      <p className="max-w-2xl text-lg text-gray-400 md:text-xl">
-        从一个想法开始创作，或上传一张照片进行编辑。
-      </p>
+      <div className="max-w-2xl text-lg text-gray-400 md:text-xl flex flex-col gap-2">
+        <p>最强改图模型&好用配套应用</p>
+        <p className="font-semibold text-yellow-300">【调用系统后台API可免费使用】</p>
+        <p>从一个想法开始创作，或上传一张照片进行编辑。</p>
+      </div>
 
       <div 
         className={`w-full max-w-3xl mt-8 p-6 sm:p-8 bg-gray-800/30 border-2 rounded-2xl backdrop-blur-sm transition-all duration-300 ${isDraggingOver ? 'bg-blue-500/20 border-dashed border-blue-400' : 'border-gray-700/50'}`}

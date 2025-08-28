@@ -1,5 +1,5 @@
 
-### [【视频连接1】](https://youtu.be/_4awNdJS5C4) [【视频连接2】]([https://youtu.be/_4awNdJS5C4](https://www.bilibili.com/video/BV1y6e2z3EDS/))
+### [【视频连接1】](https://youtu.be/_4awNdJS5C4) [【视频连接2】](https://www.bilibili.com/video/BV1y6e2z3EDS/)
 
 
 ## 按视频演示操作的顺序，用到的提示词如下：

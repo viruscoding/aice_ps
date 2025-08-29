@@ -57,7 +57,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect, onImageGenerate
       </h1>
       <div className="max-w-2xl text-lg text-gray-400 md:text-xl flex flex-col gap-2">
         <p>最强改图模型&好用配套应用</p>
-        <p className="font-semibold text-yellow-300">【调用系统后台API可免费使用】</p>
+        <p className="font-semibold text-yellow-300">【本APP调用AiStudio后台API来免费使用】有疑问请提ISSUE</p>
         <p>从一个想法开始创作，或上传一张照片进行编辑。</p>
       </div>
 

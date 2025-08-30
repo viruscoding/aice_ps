@@ -161,19 +161,38 @@ const callImageEditingModel = async (parts: any[], action: string): Promise<stri
             },
         });
 
-        for (const part of response.candidates[0].content.parts) {
+        const candidate = response.candidates?.[0];
+
+        // Check for valid response structure
+        if (!candidate || !candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+            const finishReason = candidate?.finishReason;
+            const safetyRatings = candidate?.safetyRatings;
+            
+            let detailedError = `AI did not return a valid result.`;
+            if (finishReason) {
+                detailedError += ` Reason: ${finishReason}.`;
+            }
+            if (safetyRatings?.some(r => r.blocked)) {
+                detailedError += ` The prompt may have been blocked by safety filters.`;
+            }
+            throw new Error(detailedError);
+        }
+
+        for (const part of candidate.content.parts) {
             if (part.inlineData) {
                 return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
             }
         }
+        
         // This is a special case for prompt-blocking or other non-image responses
-        if (response.candidates[0].content.parts[0]?.text) {
+        if (candidate.content.parts[0]?.text) {
              throw new Error("Model responded with text instead of an image. The prompt may have been blocked.");
         }
+
         throw new Error('AI 未能返回预期的图片结果。');
     } catch (e) {
         // Re-throw specific errors, otherwise wrap in a generic handler
-        if (e.message.includes("Model responded with text")) {
+        if (e instanceof Error && (e.message.includes("Model responded with text") || e.message.includes("AI did not return a valid result"))) {
             throw e;
         }
         throw handleApiError(e, action);
@@ -211,20 +230,62 @@ export const generateEditedImage = async (imageFile: File, prompt: string, hotsp
 
 export const generateFilteredImage = async (imageFile: File, prompt: string): Promise<string> => {
     const imagePart = await fileToGenerativePart(imageFile);
-    const textPart = { text: `Apply this filter: ${prompt}` };
-    return callImageEditingModel([imagePart, textPart], '滤镜');
+    const primaryTextPart = { text: `Apply this filter: ${prompt}` };
+    try {
+        return await callImageEditingModel([imagePart, primaryTextPart], '滤镜');
+    } catch (error) {
+        if (error instanceof Error && error.message.includes("Model responded with text instead of an image")) {
+            console.warn("Original filter prompt failed. Trying a fallback without the English prefix.");
+            const fallbackTextPart = { text: prompt };
+            return await callImageEditingModel([imagePart, fallbackTextPart], '滤镜 (fallback)');
+        }
+        throw error;
+    }
+};
+
+export const generateStyledImage = async (imageFile: File, prompt: string): Promise<string> => {
+    const imagePart = await fileToGenerativePart(imageFile);
+    const primaryTextPart = { text: `Apply this artistic style: ${prompt}` };
+    try {
+        return await callImageEditingModel([imagePart, primaryTextPart], '应用风格');
+    } catch (error) {
+        if (error instanceof Error && error.message.includes("Model responded with text instead of an image")) {
+            console.warn("Original styled image prompt failed. Trying a fallback without the English prefix.");
+            const fallbackTextPart = { text: prompt };
+            return await callImageEditingModel([imagePart, fallbackTextPart], '应用风格 (fallback)');
+        }
+        throw error;
+    }
 };
 
 export const generateAdjustedImage = async (imageFile: File, prompt: string): Promise<string> => {
     const imagePart = await fileToGenerativePart(imageFile);
-    const textPart = { text: `Apply this adjustment: ${prompt}` };
-    return callImageEditingModel([imagePart, textPart], '调整');
+    const primaryTextPart = { text: `Apply this adjustment: ${prompt}` };
+    try {
+        return await callImageEditingModel([imagePart, primaryTextPart], '调整');
+    } catch (error) {
+        if (error instanceof Error && error.message.includes("Model responded with text instead of an image")) {
+            console.warn("Original adjustment prompt failed. Trying a fallback without the English prefix.");
+            const fallbackTextPart = { text: prompt };
+            return await callImageEditingModel([imagePart, fallbackTextPart], '调整 (fallback)');
+        }
+        throw error;
+    }
 };
 
 export const generateTexturedImage = async (imageFile: File, prompt: string): Promise<string> => {
     const imagePart = await fileToGenerativePart(imageFile);
-    const textPart = { text: `Apply this texture: ${prompt}` };
-    return callImageEditingModel([imagePart, textPart], '纹理');
+    const primaryTextPart = { text: `Apply this texture: ${prompt}` };
+    try {
+        return await callImageEditingModel([imagePart, primaryTextPart], '纹理');
+    } catch (error) {
+        if (error instanceof Error && error.message.includes("Model responded with text instead of an image")) {
+            console.warn("Original texture prompt failed. Trying a fallback without the English prefix.");
+            const fallbackTextPart = { text: prompt };
+            return await callImageEditingModel([imagePart, fallbackTextPart], '纹理 (fallback)');
+        }
+        throw error;
+    }
 };
 
 export const removeBackgroundImage = async (imageFile: File): Promise<string> => {

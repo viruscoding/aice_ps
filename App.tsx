@@ -18,6 +18,7 @@ import ErasePanel from './components/ErasePanel';
 import { UndoIcon, RedoIcon, EyeIcon, BullseyeIcon, DownloadIcon, RefreshIcon, NewFileIcon } from './components/icons';
 import StartScreen from './components/StartScreen';
 import PastForwardPage from './components/PastForwardPage';
+import BeatSyncPage from './components/BeatSyncPage';
 
 // Helper to convert a data URL string to a File object
 const dataURLtoFile = (dataurl: string, filename: string): File => {
@@ -101,7 +102,7 @@ type LastAction =
   | { type: 'texture', prompt: string }
   | { type: 'erase' };
 
-type View = 'editor' | 'past-forward';
+export type View = 'editor' | 'past-forward' | 'beatsync';
 
 const EditorView: React.FC<{
     onFileSelect: (files: FileList | null) => void;
@@ -553,7 +554,7 @@ const EditorView: React.FC<{
                           />
                           <button
                               onClick={handleApplyRetouch}
-                              className="bg-gradient-to-br from-blue-600 to-blue-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 ease-in-out shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-px active:scale-95 active:shadow-inner text-base disabled:from-blue-800 disabled:to-blue-700 disabled:shadow-none disabled:cursor-not-allowed disabled:transform-none"
+                              className="bg-gradient-to-br from-blue-600 to-blue-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 ease-in-out shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/40 hover:translate-y-px active:scale-95 active:shadow-inner text-base disabled:from-blue-800 disabled:to-blue-700 disabled:shadow-none disabled:cursor-not-allowed disabled:transform-none"
                               disabled={isLoading || !retouchPrompt.trim() || !retouchHotspot}
                           >
                               应用
@@ -599,6 +600,7 @@ const App: React.FC = () => {
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
         {activeView === 'editor' && <EditorView onFileSelect={handleFileSelect} onImageGenerated={handleImageGenerated} />}
         {activeView === 'past-forward' && <PastForwardPage />}
+        {activeView === 'beatsync' && <BeatSyncPage />}
       </main>
     </div>
   );

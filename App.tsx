@@ -19,6 +19,7 @@ import { UndoIcon, RedoIcon, EyeIcon, BullseyeIcon, DownloadIcon, RefreshIcon, N
 import StartScreen from './components/StartScreen';
 import PastForwardPage from './components/PastForwardPage';
 import BeatSyncPage from './components/BeatSyncPage';
+import { FloatingConfigButton } from './patches/api-config';
 
 // Helper to convert a data URL string to a File object
 const dataURLtoFile = (dataurl: string, filename: string): File => {
@@ -602,6 +603,7 @@ const App: React.FC = () => {
         {activeView === 'past-forward' && <PastForwardPage />}
         {activeView === 'beatsync' && <BeatSyncPage />}
       </main>
+      <FloatingConfigButton />
     </div>
   );
 };

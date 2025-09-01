@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "../patches/api-config";
 
 let aiInstance: GoogleGenAI | null = null;
 
@@ -19,9 +19,9 @@ const getGoogleAI = (): GoogleGenAI => {
     }
 
     const apiKey = getApiKey();
-    if (!apiKey) {
-        throw new Error("找不到 API 密钥。请确保系统 API 密钥已在环境中正确设置。");
-    }
+    // if (!apiKey) {
+    //     throw new Error("找不到 API 密钥。请确保系统 API 密钥已在环境中正确设置。");
+    // }
     
     try {
       aiInstance = new GoogleGenAI({ apiKey });

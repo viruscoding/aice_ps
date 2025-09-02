@@ -56,9 +56,8 @@ const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect, onImageGenerate
         Nano Banana <span className="text-blue-400">化繁为简</span>
       </h1>
       <div className="max-w-2xl text-lg text-gray-400 md:text-xl flex flex-col gap-2">
-        <p>最强改图模型&好用配套应用</p>
-        <p className="font-semibold text-yellow-300">【本APP调用AiStudio后台API来免费使用】有疑问/建议<a href="https://github.com/aigem/aice_ps/issues/new/choose">[ 请提ISSUE ]</a></p>
-        <p>从一个想法开始创作，或上传一张照片进行编辑。</p>
+        <h3 className="text-3xl font-extrabold tracking-tight text-gray-100 sm:text-4xl md:text-5xl">至强改图模型&超好用应用</h3>
+        <p className="font-semibold text-yellow-300">用AiStudio后台API免费用,也可自行部署（Gemini API兼容）</p>
       </div>
 
       <div 

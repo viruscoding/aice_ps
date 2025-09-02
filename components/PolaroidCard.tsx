@@ -2,7 +2,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { RefreshIcon } from './icons';
 import Spinner from './Spinner';
@@ -18,6 +18,7 @@ interface PolaroidCardProps {
     decade: string;
     imageState: GeneratedImage;
     onRegenerate: () => void;
+    targetAspectRatio: number;
     dragConstraints?: React.RefObject<HTMLDivElement>;
     initialPosition?: { top: string; left: string; rotate: number };
     isMobile?: boolean;
@@ -27,11 +28,25 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({
     decade,
     imageState,
     onRegenerate,
+    targetAspectRatio,
     dragConstraints,
     initialPosition,
     isMobile = false
 }) => {
     const controls = useAnimation();
+    const [imageAspectRatio, setImageAspectRatio] = useState(targetAspectRatio);
+
+    useEffect(() => {
+        if (imageState?.status === 'done' && imageState.url) {
+            const img = new Image();
+            img.onload = () => {
+                setImageAspectRatio(img.naturalWidth / img.naturalHeight);
+            };
+            img.src = imageState.url;
+        } else {
+            setImageAspectRatio(targetAspectRatio);
+        }
+    }, [imageState, targetAspectRatio]);
 
     const handleShake = () => {
         if (imageState.status === 'done') {
@@ -87,11 +102,23 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({
                 return null;
         }
     };
+    
+    // Constrain the aspect ratio for aesthetics
+    const getConstrainedAspectRatio = (ratio: number) => {
+        const minRatio = 1 / 1.5; // Tallest (e.g., 2:3)
+        const maxRatio = 1.5 / 1; // Widest (e.g., 3:2)
+        return Math.max(minRatio, Math.min(maxRatio, ratio));
+    }
+    
+    const constrainedAspectRatio = getConstrainedAspectRatio(imageAspectRatio);
 
     if (isMobile) {
         return (
             <div className="w-full bg-[#fdf5e6] p-3 rounded-lg shadow-lg font-['Permanent_Marker'] text-gray-800 flex flex-col gap-3">
-                <div className="w-full aspect-square bg-gray-300 shadow-inner overflow-hidden">
+                <div 
+                    className="w-full bg-gray-300 shadow-inner overflow-hidden"
+                    style={{ aspectRatio: constrainedAspectRatio }}
+                >
                     {cardContent()}
                 </div>
                 <div className="flex justify-between items-center px-1">
@@ -106,10 +133,22 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({
         );
     }
     
+    const cardWidth = 250;
+    const padding = 12; // p-3
+    const imageWidth = cardWidth - (padding * 2); // 226px
+    const imageHeight = imageWidth / constrainedAspectRatio;
+    const textAndPaddingHeight = 60; // Space for text and bottom padding
+    const cardHeight = imageHeight + textAndPaddingHeight;
+
     return (
         <motion.div
             className="absolute cursor-grab active:cursor-grabbing group"
-            style={{ top: initialPosition?.top, left: initialPosition?.left, width: 250, height: 300 }}
+            style={{ 
+                top: initialPosition?.top, 
+                left: initialPosition?.left, 
+                width: cardWidth, 
+                height: cardHeight 
+            }}
             initial={{ opacity: 0, scale: 0.5, y: 100, rotate: 0 }}
             animate={{ 
                 opacity: 1, 
@@ -130,7 +169,10 @@ const PolaroidCard: React.FC<PolaroidCardProps> = ({
                 className="w-full h-full bg-[#fdf5e6] p-3 rounded-lg shadow-lg font-['Permanent_Marker'] text-gray-800 flex flex-col"
                 animate={controls}
             >
-                <div className="w-full aspect-square bg-gray-300 shadow-inner overflow-hidden">
+                <div 
+                    className="w-full bg-gray-300 shadow-inner overflow-hidden"
+                    style={{ height: `${imageHeight}px` }}
+                >
                     {cardContent()}
                 </div>
                 <div className="flex-grow flex items-center justify-center pt-2">

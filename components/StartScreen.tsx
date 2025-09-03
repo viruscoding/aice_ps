@@ -4,21 +4,50 @@
 */
 
 import React, { useState, useEffect } from 'react';
-import { UploadIcon, PaintBrushIcon } from './icons';
+import { UploadIcon, PaintBrushIcon, TemplateLibraryIcon } from './icons';
 import { generateImageFromText } from '../services/geminiService';
 import Spinner from './Spinner';
+
+interface Template {
+  id: string;
+  name: string;
+  iconUrl: string;
+  baseUrl: string;
+  prompt: string;
+}
 
 interface StartScreenProps {
   onFileSelect: (files: FileList | null) => void;
   onImageGenerated: (dataUrl: string) => void;
+  onTemplateSelect: (baseUrl: string, prompt: string) => void;
+  onShowTemplateLibrary: () => void;
 }
 
-const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect, onImageGenerated }) => {
+const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect, onImageGenerated, onTemplateSelect, onShowTemplateLibrary }) => {
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [generationPrompt, setGenerationPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string|null>(null);
   const [aspectRatio, setAspectRatio] = useState<'1:1' | '16:9' | '9:16' | '4:3' | '3:4'>('1:1');
+  const [templates, setTemplates] = useState<Template[]>([]);
+
+  useEffect(() => {
+    // Fetch templates on component mount
+    const fetchTemplates = async () => {
+      try {
+        const response = await fetch('/templates.json');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data: Template[] = await response.json();
+        setTemplates(data);
+      } catch (error) {
+        console.error("Failed to fetch templates:", error);
+      }
+    };
+
+    fetchTemplates();
+  }, []);
 
   useEffect(() => {
     const handlePaste = (event: ClipboardEvent) => {
@@ -89,10 +118,10 @@ const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect, onImageGenerate
         <p className="font-semibold text-yellow-300">用AiStudio后台API免费用,也可自行部署（Gemini API兼容）</p>
       </div>
       
-      <div className="w-full max-w-4xl mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+      <div className="w-full max-w-5xl mt-8 grid grid-cols-1 md:grid-cols-10 gap-6 items-stretch">
         
         {/* Generation Column */}
-        <div className="p-6 sm:p-8 bg-gray-800/30 border-2 border-gray-700/50 rounded-2xl backdrop-blur-sm flex flex-col text-left">
+        <div className="md:col-span-4 p-6 sm:p-8 bg-gray-800/30 border-2 border-gray-700/50 rounded-2xl backdrop-blur-sm flex flex-col text-left">
             <div className="flex flex-col gap-4 h-full">
                 <h2 className="text-2xl font-bold text-gray-100 text-center">用 AI <span className="text-purple-400">创造图像</span></h2>
                 <textarea
@@ -147,19 +176,54 @@ const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect, onImageGenerate
         
         {/* Upload Column */}
         <div
-          className={`group p-6 sm:p-8 bg-gray-800/30 border-2 rounded-2xl backdrop-blur-sm flex flex-col justify-center items-center cursor-pointer transition-all duration-300 ${isDraggingOver ? 'bg-blue-500/20 border-dashed border-blue-400' : 'border-gray-700/50 hover:border-blue-500/50'}`}
-          onClick={() => document.getElementById('image-upload-start')?.click()}
+          className={`group p-6 bg-gray-800/30 border-2 rounded-2xl backdrop-blur-sm flex flex-col justify-center items-center transition-all duration-300 md:col-span-6 ${isDraggingOver ? 'bg-blue-500/20 border-dashed border-blue-400' : 'border-gray-700/50 hover:border-blue-500/50'}`}
           onDragOver={(e) => { e.preventDefault(); setIsDraggingOver(true); }}
           onDragLeave={() => setIsDraggingOver(false)}
           onDrop={handleDrop}
         >
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="relative w-full inline-flex items-center justify-center px-10 py-4 text-lg font-bold text-white bg-blue-600 rounded-full cursor-pointer group-hover:bg-blue-500 transition-colors">
-                <UploadIcon className="w-6 h-6 mr-3 transition-transform duration-500 ease-in-out group-hover:rotate-[360deg] group-hover:scale-110" />
-                上传图片进行编辑
+          <div className="flex flex-col items-center gap-3 text-center w-full">
+            {templates.length > 0 && (
+                <div className="w-full">
+                    <h3 className="text-lg font-semibold text-gray-300 mb-2">或从模板开始</h3>
+                    <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
+                        {templates.slice(0, 6).map(template => (
+                            <button key={template.id} onClick={() => onTemplateSelect(template.baseUrl, template.prompt)} className="aspect-square bg-gray-900/50 rounded-lg overflow-hidden transition-all duration-200 hover:scale-105 hover:ring-2 ring-blue-400 focus:outline-none focus:ring-2 ring-blue-400" title={template.name}>
+                                <img src={template.iconUrl} alt={template.name} className="w-full h-full object-cover" />
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="relative my-3">
+                        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                            <div className="w-full border-t border-gray-600"></div>
+                        </div>
+                        <div className="relative flex justify-center">
+                            <span className="bg-gray-800/30 px-2 text-sm text-gray-400 backdrop-blur-sm">或</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            <div className="w-full">
+              <div className="flex flex-col sm:flex-row gap-2 w-full justify-center">
+                  <button
+                      onClick={() => document.getElementById('image-upload-start')?.click()}
+                      className="flex-grow relative inline-flex items-center justify-center px-10 py-4 text-lg font-bold text-white bg-blue-600 rounded-full cursor-pointer group-hover:bg-blue-500 transition-colors"
+                  >
+                      <UploadIcon className="w-6 h-6 mr-3 transition-transform duration-500 ease-in-out group-hover:rotate-[360deg] group-hover:scale-110" />
+                      上传图片进行编辑
+                  </button>
+                  <button 
+                      onClick={onShowTemplateLibrary}
+                      className="flex-shrink-0 p-4 bg-gray-700 text-gray-200 rounded-full cursor-pointer hover:bg-gray-600 transition-colors"
+                      title="打开模板库"
+                  >
+                      <TemplateLibraryIcon className="w-6 h-6" />
+                  </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">也可以直接拖放或粘贴文件到此区域</p>
+              <input id="image-upload-start" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
             </div>
-            <p className="text-sm text-gray-500 mt-2">也可以直接拖放或粘贴文件到此区域</p>
-            <input id="image-upload-start" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
           </div>
         </div>
       </div>

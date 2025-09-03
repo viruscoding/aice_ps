@@ -22,6 +22,7 @@ import HelpModal from './components/HelpModal';
 import StartScreen from './components/StartScreen';
 import PastForwardPage from './components/PastForwardPage';
 import BeatSyncPage from './components/BeatSyncPage';
+import TemplateLibraryPage from './components/TemplateLibraryPage';
 
 // Helper to convert a data URL string to a File object
 const dataURLtoFile = (dataurl: string, filename: string): File => {
@@ -105,12 +106,17 @@ type LastAction =
   | { type: 'texture', prompt: string }
   | { type: 'erase' };
 
-export type View = 'editor' | 'past-forward' | 'beatsync';
+export type View = 'editor' | 'past-forward' | 'beatsync' | 'template-library';
+export type EditorInitialState = { baseImageUrl: string; prompt: string };
 
 const EditorView: React.FC<{
     onFileSelect: (files: FileList | null) => void;
     onImageGenerated: (dataUrl: string) => void;
-}> = ({ onFileSelect, onImageGenerated }) => {
+    initialState?: EditorInitialState | null;
+    onInitialStateConsumed: () => void;
+    onTemplateSelect: (baseUrl: string, prompt: string) => void;
+    onShowTemplateLibrary: () => void;
+}> = ({ onFileSelect, onImageGenerated, initialState, onInitialStateConsumed, onTemplateSelect, onShowTemplateLibrary }) => {
   const [history, setHistory] = useState<File[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -118,6 +124,7 @@ const EditorView: React.FC<{
   const [activeTab, setActiveTab] = useState<Tab>('adjust');
   const [isComparing, setIsComparing] = useState(false);
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
+  const [initialAdjustPrompt, setInitialAdjustPrompt] = useState<string | undefined>();
 
   // State for image URLs
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -135,6 +142,40 @@ const EditorView: React.FC<{
 
   const currentImageFile = history[historyIndex];
   const originalImageFile = history[0];
+
+  // Effect to process an initial state from a template
+  useEffect(() => {
+    const processInitialState = async () => {
+        if (initialState) {
+            setIsLoading(true);
+            setError(null);
+            try {
+                // Fetch image from URL, create a File object
+                const response = await fetch(initialState.baseImageUrl);
+                if (!response.ok) throw new Error('无法加载模板图片。');
+                const blob = await response.blob();
+                const fileName = initialState.baseImageUrl.split('/').pop() || 'template.png';
+                const file = new File([blob], fileName, { type: blob.type });
+
+                // Set up the editor state
+                setHistory([file]);
+                setHistoryIndex(0);
+                setActiveTab('adjust');
+                setInitialAdjustPrompt(initialState.prompt); // Set the prompt for AdjustmentPanel
+                setLastAction(null);
+            } catch (e) {
+                setError(e instanceof Error ? e.message : '加载模板时出错。');
+                // Clear history if template loading fails
+                setHistory([]);
+                setHistoryIndex(-1);
+            } finally {
+                setIsLoading(false);
+                onInitialStateConsumed(); // Signal that we're done with the initial state
+            }
+        }
+    };
+    processInitialState();
+  }, [initialState, onInitialStateConsumed]);
 
   // Effect to manage the object URL for the current image
   useEffect(() => {
@@ -454,7 +495,12 @@ const EditorView: React.FC<{
   return (
     <>
       {!currentImageFile ? (
-        <StartScreen onFileSelect={handleLocalFileSelect} onImageGenerated={handleLocalImageGenerated} />
+        <StartScreen 
+            onFileSelect={handleLocalFileSelect} 
+            onImageGenerated={handleLocalImageGenerated}
+            onTemplateSelect={onTemplateSelect}
+            onShowTemplateLibrary={onShowTemplateLibrary}
+        />
       ) : (
         <div className="w-full max-w-7xl flex flex-col items-center gap-6 animate-fade-in">
           <div className="w-full max-w-4xl relative">
@@ -565,7 +611,7 @@ const EditorView: React.FC<{
                       </div>
                   </div>
               )}
-              {activeTab === 'adjust' && <AdjustmentPanel onApplyAdjustment={handleApplyAdjustment} isLoading={isLoading} currentImage={currentImageFile} onError={setError} />}
+              {activeTab === 'adjust' && <AdjustmentPanel onApplyAdjustment={handleApplyAdjustment} isLoading={isLoading} currentImage={currentImageFile} onError={setError} initialPrompt={initialAdjustPrompt} />}
               {activeTab === 'filters' && <FilterPanel onApplyFilter={handleApplyFilter} isLoading={isLoading} currentImage={currentImageFile} onError={setError} />}
               {activeTab === 'texture' && <TexturePanel onApplyTexture={handleApplyTexture} isLoading={isLoading} currentImage={currentImageFile} onError={setError} />}
               {activeTab === 'erase' && <ErasePanel onRemoveBackground={handleRemoveBackground} isLoading={isLoading} />}
@@ -592,6 +638,20 @@ const App: React.FC = () => {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
+  const [editorInitialState, setEditorInitialState] = useState<EditorInitialState | null>(null);
+
+  const handleTemplateSelect = (baseImageUrl: string, prompt: string) => {
+    setEditorInitialState({ baseImageUrl, prompt });
+    setActiveView('editor');
+  };
+  
+  const handleShowTemplateLibrary = () => {
+    setActiveView('template-library');
+  };
+
+  const clearInitialState = () => {
+    setEditorInitialState(null);
+  };
   
   // Dummy handlers to satisfy the EditorView props, as its internal state is now self-contained.
   const handleFileSelect = () => {};
@@ -605,19 +665,55 @@ const App: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [notification]);
+  
+  const MainContent: React.FC = () => {
+    // If a template is selected, we MUST show the editor.
+    if (editorInitialState) {
+        return <EditorView 
+            onFileSelect={handleFileSelect} 
+            onImageGenerated={handleImageGenerated}
+            initialState={editorInitialState}
+            onInitialStateConsumed={clearInitialState}
+            onTemplateSelect={handleTemplateSelect}
+            onShowTemplateLibrary={handleShowTemplateLibrary}
+        />;
+    }
+
+    // Otherwise, show the selected view from the header.
+    switch (activeView) {
+        case 'past-forward': return <PastForwardPage />;
+        case 'beatsync': return <BeatSyncPage />;
+        case 'template-library': return <TemplateLibraryPage onTemplateSelect={handleTemplateSelect} />;
+        case 'editor':
+        default:
+          return <EditorView 
+              onFileSelect={handleFileSelect} 
+              onImageGenerated={handleImageGenerated}
+              initialState={null}
+              onInitialStateConsumed={clearInitialState}
+              onTemplateSelect={handleTemplateSelect}
+              onShowTemplateLibrary={handleShowTemplateLibrary}
+          />;
+    }
+  };
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
       <Header 
         activeView={activeView} 
-        onViewChange={setActiveView} 
+        onViewChange={(view) => {
+            // Reset template state if user navigates away from editor
+            if (view !== 'editor') {
+                setEditorInitialState(null);
+            }
+            setActiveView(view)
+        }} 
         onOpenSettings={() => setIsSettingsModalOpen(true)}
         onOpenHelp={() => setIsHelpModalOpen(true)}
       />
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
-        {activeView === 'editor' && <EditorView onFileSelect={handleFileSelect} onImageGenerated={handleImageGenerated} />}
-        {activeView === 'past-forward' && <PastForwardPage />}
-        {activeView === 'beatsync' && <BeatSyncPage />}
+        <MainContent />
       </main>
       <SettingsModal
         isOpen={isSettingsModalOpen}

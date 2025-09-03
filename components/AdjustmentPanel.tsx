@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { generateCreativeSuggestions } from '../services/geminiService';
 import { SparkleIcon, ChevronDownIcon } from './icons';
 import Spinner from './Spinner';
@@ -13,16 +13,24 @@ interface AdjustmentPanelProps {
   isLoading: boolean;
   currentImage: File;
   onError: (message: string) => void;
+  initialPrompt?: string;
 }
 
 type Preset = { name: string; prompt: string };
 
-const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({ onApplyAdjustment, isLoading, currentImage, onError }) => {
+const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({ onApplyAdjustment, isLoading, currentImage, onError, initialPrompt }) => {
   const [selectedPresetPrompt, setSelectedPresetPrompt] = useState<string | null>(null);
-  const [customPrompt, setCustomPrompt] = useState('');
+  const [customPrompt, setCustomPrompt] = useState(initialPrompt || '');
   const [aiPresets, setAiPresets] = useState<Preset[]>([]);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isPresetsVisible, setIsPresetsVisible] = useState(true);
+  
+  useEffect(() => {
+    if (initialPrompt) {
+        setCustomPrompt(initialPrompt);
+        setSelectedPresetPrompt(null); // Ensure no preset is selected
+    }
+  }, [initialPrompt]);
 
   const presets: Preset[] = [
     { name: '背景虚化', prompt: 'Apply a realistic depth-of-field effect, making the background blurry while keeping the main subject in sharp focus.' },

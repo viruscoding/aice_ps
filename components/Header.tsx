@@ -3,15 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import React from 'react';
-import { SparkleIcon, GitHubIcon, ClockIcon, FilmIcon } from './icons';
+import { SparkleIcon, GitHubIcon, ClockIcon, FilmIcon, CogIcon, QuestionMarkCircleIcon } from './icons';
 import { type View } from '../App';
 
 interface HeaderProps {
   activeView: View;
   onViewChange: (view: View) => void;
+  onOpenSettings: () => void;
+  onOpenHelp: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
+const Header: React.FC<HeaderProps> = ({ activeView, onViewChange, onOpenSettings, onOpenHelp }) => {
   return (
     <header className="w-full py-4 px-4 sm:px-8 border-b border-gray-700 bg-gray-800/30 backdrop-blur-sm sticky top-0 z-50">
       <div className="w-full max-w-7xl mx-auto flex items-center justify-between">
@@ -43,6 +45,22 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange }) => {
 
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={onOpenHelp}
+              className="p-2 text-gray-400 rounded-full hover:bg-white/10 hover:text-white transition-colors"
+              aria-label="帮助"
+              title="帮助"
+            >
+              <QuestionMarkCircleIcon className="w-6 h-6" />
+            </button>
+            <button
+              onClick={onOpenSettings}
+              className="p-2 text-gray-400 rounded-full hover:bg-white/10 hover:text-white transition-colors"
+              aria-label="API 设置"
+              title="API 设置"
+            >
+              <CogIcon className="w-6 h-6" />
+            </button>
             <a
               href="https://github.com/aigem/aice_ps"
               target="_blank"

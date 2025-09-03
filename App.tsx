@@ -5,6 +5,7 @@
 
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
 import { generateEditedImage, generateFilteredImage, generateAdjustedImage, generateFusedImage, generateTexturedImage, removeBackgroundImage } from './services/geminiService';
 import Header from './components/Header';
@@ -16,10 +17,11 @@ import FusionPanel from './components/FusionPanel';
 import TexturePanel from './components/TexturePanel';
 import ErasePanel from './components/ErasePanel';
 import { UndoIcon, RedoIcon, EyeIcon, BullseyeIcon, DownloadIcon, RefreshIcon, NewFileIcon } from './components/icons';
+import SettingsModal from './components/SettingsModal';
+import HelpModal from './components/HelpModal';
 import StartScreen from './components/StartScreen';
 import PastForwardPage from './components/PastForwardPage';
 import BeatSyncPage from './components/BeatSyncPage';
-import { FloatingConfigButton } from './patches/api-config';
 
 // Helper to convert a data URL string to a File object
 const dataURLtoFile = (dataurl: string, filename: string): File => {
@@ -587,23 +589,58 @@ const EditorView: React.FC<{
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('editor');
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [notification, setNotification] = useState<string | null>(null);
   
   // Dummy handlers to satisfy the EditorView props, as its internal state is now self-contained.
   const handleFileSelect = () => {};
   const handleImageGenerated = () => {};
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 3000); // 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
       <Header 
         activeView={activeView} 
         onViewChange={setActiveView} 
+        onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onOpenHelp={() => setIsHelpModalOpen(true)}
       />
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
         {activeView === 'editor' && <EditorView onFileSelect={handleFileSelect} onImageGenerated={handleImageGenerated} />}
         {activeView === 'past-forward' && <PastForwardPage />}
         {activeView === 'beatsync' && <BeatSyncPage />}
       </main>
-      <FloatingConfigButton />
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        onSave={() => setNotification("设置已成功保存！")}
+      />
+      <HelpModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+      />
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.3 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            className="fixed bottom-6 right-6 z-50 bg-green-500/90 text-white px-5 py-3 rounded-lg shadow-2xl backdrop-blur-sm"
+          >
+            <p className="font-semibold">{notification}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

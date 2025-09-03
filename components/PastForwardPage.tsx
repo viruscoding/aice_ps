@@ -2,7 +2,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateDecadeImage } from '../services/geminiService';
 import { createAlbumPage } from '../lib/albumUtils';
@@ -36,6 +36,9 @@ const PastForwardPage: React.FC = () => {
     const [generatedImages, setGeneratedImages] = useState<Record<string, GeneratedImage>>({});
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [imageAspectRatio, setImageAspectRatio] = useState(1);
+    const [polaroidFrameHeight, setPolaroidFrameHeight] = useState<string | null>(null);
+
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const dragAreaRef = useRef<HTMLDivElement>(null);
@@ -48,8 +51,28 @@ const PastForwardPage: React.FC = () => {
         setError(null);
         const reader = new FileReader();
         reader.onload = (e) => {
-            setUploadedImage(e.target?.result as string);
+            const dataUrl = e.target?.result as string;
+            setUploadedImage(dataUrl);
             setAppState('image-uploaded');
+
+            const img = new Image();
+            img.onload = () => {
+                const aspectRatio = img.naturalWidth / img.naturalHeight;
+                setImageAspectRatio(aspectRatio);
+
+                // Dynamically adjust the height of the preview frame
+                const frameWidth = 224; // Corresponds to w-64 (256px) - p-4*2 (32px)
+                let imagePartHeight = frameWidth / aspectRatio;
+                
+                // Aesthetic constraints to prevent extreme sizes
+                const minHeight = 150;
+                const maxHeight = 400;
+                imagePartHeight = Math.max(minHeight, Math.min(maxHeight, imagePartHeight));
+    
+                const totalFrameHeight = imagePartHeight + 32 + 24; // image + y-padding + text-height
+                setPolaroidFrameHeight(`${totalFrameHeight}px`);
+            };
+            img.src = dataUrl;
         };
         reader.readAsDataURL(file);
     };
@@ -66,6 +89,8 @@ const PastForwardPage: React.FC = () => {
         setGeneratedImages({});
         setIsLoading(false);
         setError(null);
+        setImageAspectRatio(1);
+        setPolaroidFrameHeight(null);
     };
 
     const generateSingleDecade = async (decade: string) => {
@@ -164,11 +189,22 @@ const PastForwardPage: React.FC = () => {
                     <p className="text-gray-300 text-lg md:text-2xl -mt-4">Travel through time with your photos.</p>
                     
                     <div 
-                        className="w-64 h-80 mt-8 bg-[#fdf5e6] rounded-lg shadow-2xl p-4 flex items-center justify-center cursor-pointer group"
+                        className="w-64 mt-8 bg-[#fdf5e6] rounded-lg shadow-2xl p-4 flex flex-col justify-center cursor-pointer group transition-all duration-300 ease-in-out"
+                        style={{ height: polaroidFrameHeight ?? '20rem' }}
                         onClick={() => fileInputRef.current?.click()}
                     >
                         {uploadedImage ? (
-                            <img src={uploadedImage} alt="Uploaded" className="max-w-full max-h-full object-contain"/>
+                             <>
+                                <img 
+                                    src={uploadedImage} 
+                                    alt="Uploaded" 
+                                    className="w-full h-auto object-contain"
+                                    style={{ maxHeight: '400px' }}
+                                />
+                                <p className="font-bold text-center pt-4 font-['Permanent_Marker'] text-gray-700">
+                                    Click to Change
+                                </p>
+                            </>
                         ) : (
                             <div className="text-center text-gray-700">
                                 <UploadIcon className="w-12 h-12 mx-auto text-gray-500" />
@@ -210,6 +246,7 @@ const PastForwardPage: React.FC = () => {
                                 onRegenerate={() => generateSingleDecade(decade)}
                                 dragConstraints={dragAreaRef}
                                 initialPosition={POSITIONS[index]}
+                                targetAspectRatio={imageAspectRatio}
                             />
                         ))}
                     </div>
@@ -223,6 +260,7 @@ const PastForwardPage: React.FC = () => {
                                     decade={decade}
                                     imageState={generatedImages[decade]}
                                     onRegenerate={() => generateSingleDecade(decade)}
+                                    targetAspectRatio={imageAspectRatio}
                                     isMobile
                                 />
                             ))}

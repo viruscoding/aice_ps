@@ -3,35 +3,69 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "../patches/api-config";
+import { GoogleGenAI, GenerateContentResponse, Modality, Type } from "@google/genai";
 
 let aiInstance: GoogleGenAI | null = null;
+let lastUsedApiKey: string | null = null;
+let lastUsedBaseUrl: string | undefined | null = null;
 
 // Function to get the current API key
 const getApiKey = (): string | null => {
+    // Prioritize user-provided key from localStorage
+    try {
+      const userApiKey = localStorage.getItem('gemini-api-key');
+      if (userApiKey && userApiKey.trim() !== '') {
+          return userApiKey;
+      }
+    } catch(e) {
+      console.warn("Could not access localStorage for API key.", e);
+    }
+    // Fallback to the system-level environment variable
     return process.env.API_KEY || null;
 }
 
+// Function to get the current API Base URL
+const getBaseUrl = (): string | undefined => {
+    try {
+        const userBaseUrl = localStorage.getItem('gemini-base-url');
+        if (userBaseUrl && userBaseUrl.trim() !== '') {
+            return userBaseUrl.trim();
+        }
+    } catch(e) {
+      console.warn("Could not access localStorage for API base URL.", e);
+    }
+    return undefined; // Return undefined to use the default endpoint
+}
+
+
 // Centralized function to get the GoogleGenAI instance
 const getGoogleAI = (): GoogleGenAI => {
-    if (aiInstance) {
-        return aiInstance;
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        throw new Error("找不到 API 密钥。请在设置中输入您的密钥，或确保系统 API 密钥已在环境中正确设置。");
+    }
+    const baseUrl = getBaseUrl();
+    
+    // Re-initialize if the API key or base URL has changed, or if there's no instance
+    if (!aiInstance || apiKey !== lastUsedApiKey || baseUrl !== lastUsedBaseUrl) {
+      try {
+        const config: { apiKey: string, apiEndpoint?: string } = { apiKey };
+        if (baseUrl) {
+            config.apiEndpoint = baseUrl;
+        }
+        aiInstance = new GoogleGenAI(config);
+        lastUsedApiKey = apiKey;
+        lastUsedBaseUrl = baseUrl;
+      } catch(e) {
+        console.error("Failed to initialize GoogleGenAI", e);
+        aiInstance = null; // Invalidate on failure
+        lastUsedApiKey = null;
+        lastUsedBaseUrl = null;
+        throw new Error(`初始化 AI 服务失败: ${e instanceof Error ? e.message : String(e)}`);
+      }
     }
 
-    const apiKey = getApiKey();
-    // if (!apiKey) {
-    //     throw new Error("找不到 API 密钥。请确保系统 API 密钥已在环境中正确设置。");
-    // }
-    
-    try {
-      aiInstance = new GoogleGenAI({ apiKey });
-      return aiInstance;
-    } catch(e) {
-      console.error("Failed to initialize GoogleGenAI", e);
-      // Invalidate on failure so we can retry
-      aiInstance = null;
-      throw new Error(`初始化 AI 服务失败: ${e instanceof Error ? e.message : String(e)}`);
-    }
+    return aiInstance;
 };
 
 const handleApiError = (error: any, action: string): Error => {
@@ -48,9 +82,9 @@ const handleApiError = (error: any, action: string): Error => {
     } catch(e) {
       // It's not a JSON string, use the original message
       if (String(error.message).includes('API key not valid')) {
-          message = '系统 API 密钥无效。';
+          message = 'API 密钥无效。请检查您在设置中输入的密钥。';
       } else if (String(error.message).includes('xhr error')) {
-           message = `与 AI 服务的通信失败。这可能是由网络问题或无效的系统 API 密钥引起的。`;
+           message = `与 AI 服务的通信失败。这可能是由网络问题或无效的 API 密钥引起的。`;
       }
     }
 

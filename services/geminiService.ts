@@ -49,9 +49,9 @@ const getGoogleAI = (): GoogleGenAI => {
     // Re-initialize if the API key or base URL has changed, or if there's no instance
     if (!aiInstance || apiKey !== lastUsedApiKey || baseUrl !== lastUsedBaseUrl) {
       try {
-        const config: { apiKey: string, apiEndpoint?: string } = { apiKey };
+        const config: { apiKey: string, httpOptions?: { baseUrl: string } } = { apiKey };
         if (baseUrl) {
-            config.apiEndpoint = baseUrl;
+            config.httpOptions = { baseUrl };
         }
         aiInstance = new GoogleGenAI(config);
         lastUsedApiKey = apiKey;

@@ -6,11 +6,17 @@ Aice PS 是一款功能强大的网页版 AI 照片编辑器，利用 Google ais
 
 ## 注意，调用 gemini api key 是需要收费的。但直接调用环境变量中的api是免费的。[推荐可大方使用的极具性价比API平台](https://cnb.build/no.1/api/-/issues/2)
 
-### [【AiStudio DEMO】](https://ai.studio/apps/drive/1JSVTWc7Pe1GfLLrQcBWPZF_yH_80xUGg)  [【视频教程】](https://www.bilibili.com/video/BV1y6e2z3EDS/)  [【交流群】](https://cnb.cool/fuliai/comfyui/-/issues/11) 
+### [【AiStudio DEMO】](https://ai.studio/apps/drive/1JSVTWc7Pe1GfLLrQcBWPZF_yH_80xUGg) 
 
-> 登录了google aistudio 的可以直接打开上面 app 使用。
+> 登录了google aistudio 的可以直接打开上面 app 使用。完全免费
+
+### [【可自部署版本 DEMO】https://nb.kuai.host/](https://nb.kuai.host/)
+
+> #### 自部署版本，国内可直接用，已经配套了实惠且稳定的香蕉API，推荐使用。
 
 > #### 请大家谨慎使用自己的gemini api key。[推荐可大方使用的极具性价比API平台](https://cnb.build/no.1/api/-/issues/2)
+
+ [【视频教程】](https://www.bilibili.com/video/BV1y6e2z3EDS/)  [【交流群】](https://cnb.cool/fuliai/comfyui/-/issues/11) 
 
 ## 视频中提示词请查看APP中的【NB提示词库】
 
@@ -70,69 +76,6 @@ Aice PS 的强大功能由 Google 最先进的一系列生成式 AI 模型驱动
 - [] 接入 OpenRouter api，可每天免费调用50次 Nano Banana
 - [] ……
 
-`=======================================================================`
-
-### 🚀 快速开始 (本地开发)
-
-该项目无需复杂的构建工具，可以直接在浏览器中运行。
-
-### 1. 准备环境
-
-- 一个现代的网页浏览器 (如 Chrome, Firefox, Edge)。
-- 一个简单的本地 Web 服务器。如果您安装了 Node.js，可以使用 `serve`：
-  ```bash
-  npm install -g serve
-  serve .
-  ```
-  或者，如果您安装了 Python 3，可以使用：
-  ```bash
-  python -m http.server
-  ```
-
-### 2. 配置 API 密钥
-
-要使用 AI 功能，您需要一个 Google Gemini API 密钥。
-
-- **获取密钥**: 访问 [Google AI Studio](https://aistudio.google.com/app/apikey) 创建您的 API 密钥。
-- **配置密钥**:
-  1. 在本地服务器上运行项目后，在浏览器中打开应用。
-  2. 点击页面右上角的**设置图标 (⚙️)**。
-  3. 将您获取的 API 密钥粘贴到输入框中，然后点击“保存设置”。
-  
-密钥将安全地保存在您浏览器的 `localStorage` 中，仅供本地开发使用。
-
-### 3. 运行应用
-
-启动本地 Web 服务器后，在浏览器中访问对应的地址（通常是 `http://localhost:3000` 或 `http://localhost:8000`），即可开始使用。
-
-## 部署到 Vercel (推荐)
-
-将此项目部署到 Vercel 非常简单，只需几分钟。
-
-### 步骤 1: Fork & 导入仓库
-
-1.  **Fork** 此 GitHub 仓库到您自己的账户。
-2.  登录您的 [Vercel](https://vercel.com/) 账户。
-3.  点击 "Add New... -> Project"，然后选择您刚刚 Fork 的仓库并点击 "Import"。
-
-### 步骤 2: 配置项目
-
-1.  Vercel 会自动识别这是一个静态项目。在 **Framework Preset** 部分，选择 **Other**。
-2.  **构建和输出设置**部分保持默认即可，**无需任何构建命令**。
-
-### 步骤 3: 设置环境变量 (关键！)
-
-这是最重要的一步，它让您的线上应用能够安全地使用 API。
-
-1.  展开 **Environment Variables** (环境变量) 部分。
-2.  添加一个新的环境变量：
-    - **Name**: `API_KEY`
-    - **Value**: 粘贴您从 Google AI Studio 获取的 Gemini API 密钥。
-3.  点击 "Add" 保存变量。
-
-### 步骤 4: 部署
-
-点击 **Deploy** 按钮。Vercel 会在几十秒内完成部署，之后您就可以通过 Vercel 提供的 URL 访问您的线上 AI 图片编辑器了！
 
 ###  [【视频教程】](https://www.bilibili.com/video/BV1y6e2z3EDS/)  [【交流群】](https://cnb.cool/fuliai/comfyui/-/issues/11) 
 

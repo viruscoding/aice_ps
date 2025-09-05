@@ -2,7 +2,7 @@
 
 Aice PS 是一款功能强大的网页版 AI 照片编辑器，利用 Google aistudio 的先进能力，让专业级的图像编辑和创作变得简单直观。用户可以通过简单的文本提示对图像进行修饰、应用创意滤镜、进行专业调整，甚至从零开始生成全新的图像。
 
-![Aice PS 界面截图](./public/show.jpg)
+![Aice PS 界面截图](public/images/show.jpg)
 
 ## 注意，调用 gemini api key 是需要收费的。但直接调用环境变量中的api是免费的。[推荐可大方使用的极具性价比API平台](https://cnb.build/no.1/api/-/issues/2)
 

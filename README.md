@@ -16,7 +16,7 @@ Aice PS 是一款功能强大的网页版 AI 照片编辑器，利用 Google ais
 
 > #### 请大家谨慎使用自己的gemini api key。[推荐可大方使用的极具性价比API平台](https://cnb.build/no.1/api/-/issues/2)
 
- [【视频教程】](https://www.bilibili.com/video/BV1y6e2z3EDS/)  [【交流群】](https://cnb.cool/fuliai/comfyui/-/issues/11) 
+ [【视频教程】](https://www.bilibili.com/video/BV1hwahzNEhC/)  [【交流群】](https://cnb.cool/fuliai/comfyui/-/issues/11) 
 
 ## 视频中提示词请查看APP中的【NB提示词库】
 
@@ -77,7 +77,7 @@ Aice PS 的强大功能由 Google 最先进的一系列生成式 AI 模型驱动
 - [] ……
 
 
-###  [【视频教程】](https://www.bilibili.com/video/BV1y6e2z3EDS/)  [【交流群】](https://cnb.cool/fuliai/comfyui/-/issues/11) 
+###  [【视频教程】](https://www.bilibili.com/video/BV1hwahzNEhC/)  [【交流群】](https://cnb.cool/fuliai/comfyui/-/issues/11) 
 
 ## 📄 许可证
 

@@ -45,7 +45,7 @@
     "iconUrl": "public/images/6.1.jpg",
     "baseUrl": "public/images/6.jpg",
     "description": "高端商业静物：纯白背景、棚拍柔光、浅景深，突出极小但细节丰富的产品。",
-    "prompt": "A high-resolution advertising photograph of a realistic, miniature [PRODUCT] held delicately between a person's thumb and index finger. clean and white background, studio lighting, soft shadows. The hand is well-groomed, natural skin tone, and positioned to highlight the product’s shape and details. The product appears extremely small but hyper-detailed and brand-accurate, centered in the frame with a shallow depth of field. Emulates luxury product photography and minimalist commercial style."
+    "prompt": "A high-resolution advertising photograph of a realistic, miniature this thing held delicately between a person's thumb and index finger. clean and white background, studio lighting, soft shadows. The hand is well-groomed, natural skin tone, and positioned to highlight the product’s shape and details. The product appears extremely small but hyper-detailed and brand-accurate, centered in the frame with a shallow depth of field. Emulates luxury product photography and minimalist commercial style."
   },
   {
     "id": "template-kawaii-red-panda-sticker",

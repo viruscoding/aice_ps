@@ -20,9 +20,9 @@ const TemplateCard: React.FC<{
     let objectUrl: string | null = null;
     const fetchImage = async () => {
       try {
-        const response = await fetch(template.baseUrl);
+        const response = await fetch(template.iconUrl);
         if (!response.ok) {
-          throw new Error(`Failed to fetch template image: ${template.baseUrl}`);
+          throw new Error(`Failed to fetch template image: ${template.iconUrl}`);
         }
         const blob = await response.blob();
         objectUrl = URL.createObjectURL(blob);
@@ -40,7 +40,7 @@ const TemplateCard: React.FC<{
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [template.baseUrl]);
+  }, [template.iconUrl]);
 
   return (
     <div

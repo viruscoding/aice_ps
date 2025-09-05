@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { UploadIcon, XMarkIcon } from './icons';
 
 interface FusionPanelProps {
@@ -37,7 +37,18 @@ const FusionPanel: React.FC<FusionPanelProps> = ({ onApplyFusion, isLoading, onE
     fileInputRef: React.RefObject<HTMLInputElement>;
   }> = ({ id, file, setFile, fileInputRef }) => {
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const imageSrc = file ? URL.createObjectURL(file) : null;
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+
+    useEffect(() => {
+      if (file) {
+          const newUrl = URL.createObjectURL(file);
+          setImageSrc(newUrl);
+          return () => {
+              URL.revokeObjectURL(newUrl);
+          };
+      }
+      setImageSrc(null);
+    }, [file]);
 
     const handleFileSelect = (files: FileList | null) => {
         if (files && files.length > 0) {

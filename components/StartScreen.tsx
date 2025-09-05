@@ -3,23 +3,67 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
+// FIX: Corrected React import statement. The 'a' was a typo.
 import React, { useState, useEffect } from 'react';
 import { UploadIcon, PaintBrushIcon, TemplateLibraryIcon } from './icons';
 import { generateImageFromText } from '../services/geminiService';
 import Spinner from './Spinner';
+import { Template } from '../App';
 
-interface Template {
-  id: string;
-  name: string;
-  iconUrl: string;
-  baseUrl: string;
-  prompt: string;
-}
+// New component to handle fetching and displaying template icon
+const TemplateButton: React.FC<{
+  template: Template;
+  onSelect: (template: Template) => void;
+}> = ({ template, onSelect }) => {
+  const [iconSrc, setIconSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    let objectUrl: string | null = null;
+    const fetchImage = async () => {
+      try {
+        const response = await fetch(template.iconUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch template icon: ${template.iconUrl}`);
+        }
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        setIconSrc(objectUrl);
+      } catch (error) {
+        console.error(error);
+        // Could set a placeholder error image source here
+      }
+    };
+
+    fetchImage();
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [template.iconUrl]);
+
+  return (
+    <button
+      onClick={() => onSelect(template)}
+      className="aspect-square bg-gray-900/50 rounded-lg overflow-hidden transition-all duration-200 hover:scale-105 hover:ring-2 ring-blue-400 focus:outline-none focus:ring-2 ring-blue-400"
+      title={template.name}
+    >
+      {iconSrc ? (
+        <img src={iconSrc} alt={template.name} className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <Spinner className="w-6 h-6 text-gray-500" />
+        </div>
+      )}
+    </button>
+  );
+};
 
 interface StartScreenProps {
   onFileSelect: (files: FileList | null) => void;
   onImageGenerated: (dataUrl: string) => void;
-  onTemplateSelect: (baseUrl: string, prompt: string) => void;
+  onTemplateSelect: (template: Template) => void;
   onShowTemplateLibrary: () => void;
 }
 
@@ -187,9 +231,11 @@ const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect, onImageGenerate
                     <h3 className="text-lg font-semibold text-gray-300 mb-2">或从模板开始</h3>
                     <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
                         {templates.slice(0, 6).map(template => (
-                            <button key={template.id} onClick={() => onTemplateSelect(template.baseUrl, template.prompt)} className="aspect-square bg-gray-900/50 rounded-lg overflow-hidden transition-all duration-200 hover:scale-105 hover:ring-2 ring-blue-400 focus:outline-none focus:ring-2 ring-blue-400" title={template.name}>
-                                <img src={template.iconUrl} alt={template.name} className="w-full h-full object-cover" />
-                            </button>
+                            <TemplateButton 
+                                key={template.id} 
+                                template={template} 
+                                onSelect={onTemplateSelect}
+                            />
                         ))}
                     </div>
 

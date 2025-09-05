@@ -6,17 +6,68 @@
 import React, { useState, useEffect } from 'react';
 import Spinner from './Spinner';
 import { SearchIcon } from './icons';
+import { Template } from '../App';
 
-interface Template {
-  id: string;
-  name: string;
-  iconUrl: string;
-  baseUrl: string;
-  prompt: string;
-}
+
+// New component to handle fetching and displaying template image
+const TemplateCard: React.FC<{
+  template: Template;
+  onSelect: (template: Template) => void;
+}> = ({ template, onSelect }) => {
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    let objectUrl: string | null = null;
+    const fetchImage = async () => {
+      try {
+        const response = await fetch(template.baseUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch template image: ${template.baseUrl}`);
+        }
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        setImageSrc(objectUrl);
+      } catch (error) {
+        console.error(error);
+        // Could set a placeholder error image source here
+      }
+    };
+
+    fetchImage();
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [template.baseUrl]);
+
+  return (
+    <div
+      className="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/20 hover:border-blue-500/50 hover:-translate-y-1"
+      onClick={() => onSelect(template)}
+    >
+      <div className="cursor-pointer">
+        <div className="aspect-video bg-gray-900 overflow-hidden flex items-center justify-center">
+          {imageSrc ? (
+            <img src={imageSrc} alt={template.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          ) : (
+            <Spinner className="w-8 h-8 text-gray-500" />
+          )}
+        </div>
+        <div className="p-4">
+          <h3 className="text-xl font-bold text-white truncate">{template.name}</h3>
+          <p className="text-gray-400 mt-2 text-sm h-20 overflow-hidden text-ellipsis">
+            {template.prompt}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface TemplateLibraryPageProps {
-    onTemplateSelect: (baseUrl: string, prompt: string) => void;
+    onTemplateSelect: (template: Template) => void;
 }
 
 const ITEMS_PER_PAGE = 9;
@@ -53,7 +104,8 @@ const TemplateLibraryPage: React.FC<TemplateLibraryPageProps> = ({ onTemplateSel
     // Filtering logic
     const filteredTemplates = templates.filter(template =>
         template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        template.prompt.toLowerCase().includes(searchQuery.toLowerCase())
+        template.prompt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        template.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     // Pagination logic based on filtered results
@@ -101,23 +153,11 @@ const TemplateLibraryPage: React.FC<TemplateLibraryPageProps> = ({ onTemplateSel
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {currentTemplates.length > 0 ? (
                     currentTemplates.map(template => (
-                        <div 
-                            key={template.id} 
-                            className="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/20 hover:border-blue-500/50 hover:-translate-y-1"
-                            onClick={() => onTemplateSelect(template.baseUrl, template.prompt)}
-                        >
-                            <div className="cursor-pointer">
-                                <div className="aspect-video bg-gray-900 overflow-hidden">
-                                    <img src={template.baseUrl} alt={template.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                </div>
-                                <div className="p-4">
-                                    <h3 className="text-xl font-bold text-white truncate">{template.name}</h3>
-                                    <p className="text-gray-400 mt-2 text-sm h-20 overflow-hidden text-ellipsis">
-                                        {template.prompt}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        <TemplateCard
+                            key={template.id}
+                            template={template}
+                            onSelect={onTemplateSelect}
+                        />
                     ))
                 ) : (
                      <div className="col-span-full text-center py-16">

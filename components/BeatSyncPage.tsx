@@ -94,7 +94,7 @@ const BeatSyncPage: React.FC = () => {
         setStylePrompts(DEFAULT_PROMPTS[imageCount]);
     }, [imageCount]);
     
-    // Cleanup custom music object URL on unmount or when a new one is created
+    // Cleanup custom music object URL
     useEffect(() => {
         return () => {
             if (customMusicUrl) {
@@ -102,6 +102,27 @@ const BeatSyncPage: React.FC = () => {
             }
         };
     }, [customMusicUrl]);
+
+    // Cleanup uploaded image preview URL
+    useEffect(() => {
+        if (!uploadedImageFile) {
+            setUploadedImagePreview(null);
+            return;
+        }
+        const objectUrl = URL.createObjectURL(uploadedImageFile);
+        setUploadedImagePreview(objectUrl);
+
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [uploadedImageFile]);
+    
+    // Cleanup generated video URL
+    useEffect(() => {
+        return () => {
+            if (videoUrl) {
+                URL.revokeObjectURL(videoUrl);
+            }
+        };
+    }, [videoUrl]);
 
     // Auto-dismissing notification
     useEffect(() => {
@@ -123,8 +144,6 @@ const BeatSyncPage: React.FC = () => {
         }
         setError(null);
         setUploadedImageFile(file);
-        if (uploadedImagePreview) URL.revokeObjectURL(uploadedImagePreview);
-        setUploadedImagePreview(URL.createObjectURL(file));
         setAppState('idle'); // Reset state if a new image is uploaded
         setGeneratedImages({});
         setVideoUrl(null);

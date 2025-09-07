@@ -54,11 +54,11 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange, onOpenSetting
 
               <div className="h-6 w-px bg-gray-600"></div>
               
-              <a href="https://nb.kuai.host/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 transition-colors p-2 -m-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10">
+              {/* <a href="https://nb.kuai.host/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 transition-colors p-2 -m-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10">
                 <h1 className="text-xl font-bold tracking-tight">
                   【自部署版本APP】国内可用
                 </h1>
-              </a>
+              </a> */}
 
           </div>
           <div className="flex items-center gap-2">

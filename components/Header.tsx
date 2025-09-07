@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import React from 'react';
-import { SparkleIcon, GitHubIcon, ClockIcon, FilmIcon, CogIcon, QuestionMarkCircleIcon } from './icons';
+import { SparkleIcon, GitHubIcon, ClockIcon, FilmIcon, CogIcon, QuestionMarkCircleIcon, TemplateLibraryIcon } from './icons';
 import { type View } from '../App';
 
 interface HeaderProps {
@@ -42,6 +42,23 @@ const Header: React.FC<HeaderProps> = ({ activeView, onViewChange, onOpenSetting
                   音画志
                 </h1>
               </button>
+              
+              <div className="h-6 w-px bg-gray-600"></div>
+
+              <button onClick={() => onViewChange('template-library')} className={`flex items-center gap-3 transition-colors p-2 -m-2 rounded-lg ${activeView === 'template-library' ? 'text-white' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+                <TemplateLibraryIcon className="w-6 h-6 text-green-400" />
+                <h1 className="text-xl font-bold tracking-tight font-['Permanent_Marker']">
+                  NB 提示词库
+                </h1>
+              </button>
+
+              <div className="h-6 w-px bg-gray-600"></div>
+              
+              <a href="https://nb.kuai.host/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 transition-colors p-2 -m-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10">
+                <h1 className="text-xl font-bold tracking-tight">
+                  【自部署版本APP】国内可用
+                </h1>
+              </a>
 
           </div>
           <div className="flex items-center gap-2">
